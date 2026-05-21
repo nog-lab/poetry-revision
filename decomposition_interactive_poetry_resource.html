@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Decomposition – Interactive Poetry Resource</title>
+<style>
+  :root{
+    --pink:#ff4fa3; --green:#b9f6b3; --orange:#ffb347; --ink:#111;
+    --line:#d6d6d6; --cream:#fff9f1; --context:#fff3b0; --structure:#cfe9ff;
+  }
+  *{box-sizing:border-box}
+  html,body{
+    width:100%;height:100%;margin:0;overflow:hidden;
+    font-family:"Century Gothic","CenturyGothic","AppleGothic",Arial,sans-serif;
+    background:var(--cream);color:var(--ink);
+  }
+  button{font-family:inherit;cursor:pointer}
+  .screen{display:none;width:100vw;height:100vh;overflow:hidden}.screen.active{display:block}
+
+  /* HOME */
+  .home{height:100vh;padding:16px;display:grid;grid-template-rows:auto 1fr;gap:12px;max-width:1280px;margin:0 auto;overflow:hidden}
+  .hero{background:#fff;border:2px solid rgba(255,79,163,.35);border-radius:18px;padding:14px 18px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+  .eyebrow{display:inline-block;background:rgba(255,179,71,.35);border:2px solid rgba(255,179,71,.75);font-weight:900;text-transform:uppercase;letter-spacing:.7px;font-size:10px;border-radius:999px;padding:4px 9px}
+  h1{font-size:28px;line-height:1;margin:9px 0 5px}.hero p{font-size:13px;line-height:1.25;max-width:820px;margin:0;color:#333}
+  .clusters{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;min-height:0}.cluster{background:white;border:2px solid var(--line);border-radius:18px;padding:12px;min-height:0;overflow:hidden}.cluster h2{margin:0 0 8px;font-size:16px}.poemBtn{width:100%;text-align:left;border:2px solid #eee;background:#fff;border-radius:11px;padding:8px 10px;margin:5px 0;font-size:13px;font-weight:900}.poemBtn.available{border-color:rgba(255,79,163,.7);background:rgba(255,79,163,.05)}.poemBtn.locked{opacity:.45;cursor:not-allowed}
+
+  /* APP */
+  .toolbar{
+    height:42px;background:#fff;border-bottom:2px solid var(--line);
+    display:grid;grid-template-columns:140px 1fr auto;align-items:center;
+    padding:0 8px;gap:6px;z-index:10;overflow:hidden;white-space:nowrap;
+  }
+  .title{text-align:center;font-size:15px;font-weight:900;line-height:1;overflow:hidden;text-overflow:ellipsis}
+  .nav{display:flex;gap:5px;align-items:center;min-width:0}.rightTools{justify-content:flex-end;flex-wrap:nowrap;overflow:hidden}
+  .tbtn{border:2px solid rgba(0,0,0,.14);background:#fff;border-radius:9px;padding:5px 7px;font-weight:900;font-size:10.5px;line-height:1;white-space:nowrap}.tbtn.active{background:rgba(255,79,163,.15);border-color:rgba(255,79,163,.65)}.tbtn.homeBtn{background:rgba(255,179,71,.18);border-color:rgba(255,179,71,.65)}
+  .mode{height:calc(100vh - 42px);padding:clamp(4px,.8vh,10px);gap:clamp(6px,.8vw,12px);max-width:1440px;margin:0 auto;overflow:hidden;display:none;align-items:center;justify-content:center}.mode.activeMode{display:grid}
+  #five{grid-template-columns:minmax(470px,42%) minmax(420px,58%)} #quotes{grid-template-columns:minmax(430px,42%) minmax(500px,58%)} #context{grid-template-columns:minmax(400px,46%) minmax(250px,27%) minmax(250px,27%)}
+  .panel{background:#fff;border:2px solid var(--line);border-radius:15px;padding:clamp(5px,.75vh,9px);overflow:hidden;min-height:0;max-height:100%;align-self:center}.poemPanel{border:none;background:transparent;display:flex;align-items:center;justify-content:center;padding:0;min-height:0;align-self:center}
+  .poemCard{border:2px solid rgba(255,79,163,.45);background:rgba(255,79,163,.035);border-radius:13px;padding:clamp(3px,.45vh,6px) clamp(5px,.55vw,8px);max-height:100%;width:max-content;max-width:100%;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .poemTitle{text-align:center;font-size:clamp(13px,1vw,17px);font-weight:900;letter-spacing:.25px;margin:0 0 clamp(5px,.8vh,10px);line-height:1}.poemText{font-family:"Century Gothic","CenturyGothic","AppleGothic",Arial,sans-serif;font-size:clamp(13px,1.05vw,17px);line-height:1.12;white-space:pre-wrap;margin:0;max-width:660px}.hl{border-radius:4px;padding:0 2px;transition:.15s}.quotesOn .hl{background:var(--green);font-weight:900}.focusQuote{background:var(--green)!important;outline:2px solid var(--orange);font-weight:900}
+
+  .taskTitle{font-size:clamp(16px,1.35vw,22px);margin:0 0 clamp(1px,.3vh,4px);line-height:1}.instruction{font-size:clamp(11px,.88vw,13.5px);line-height:1.08;color:#333;margin:0 0 clamp(3px,.45vh,6px)}.fiveGrid{display:grid;gap:clamp(7px,1.15vh,13px);height:auto;grid-template-rows:repeat(5,auto);align-content:center}.wCard{border:2px solid rgba(255,179,71,.65);background:rgba(255,179,71,.13);border-radius:12px;padding:clamp(7px,1.05vh,12px);min-height:0;display:grid;grid-template-columns:minmax(72px,88px) 1fr auto;align-items:center;gap:clamp(7px,.9vw,12px)}.wTop{display:contents}.wCard h3{margin:0;text-transform:uppercase;font-size:clamp(13px,1.05vw,16px);letter-spacing:.5px;text-align:center;align-self:center;justify-self:center}.wCard p{margin:0;font-size:clamp(12px,.95vw,15px);line-height:1.12}.wReveal{display:none;margin:0;border-radius:9px;padding:clamp(4px,.7vh,7px);background:#fff;border:2px solid rgba(0,0,0,.10);font-size:clamp(12px,.95vw,15px);line-height:1.12}.wReveal.show{display:block}.wCard:has(.wReveal.show) > p{display:none}.miniBtn{border:2px solid rgba(0,0,0,.12);background:#fff;border-radius:8px;padding:clamp(5px,.75vh,8px) clamp(7px,.85vw,10px);font-weight:900;font-size:clamp(10px,.75vw,12px);line-height:1;white-space:nowrap}
+
+  .quotePanel{display:grid;grid-template-rows:auto auto 1fr;gap:clamp(5px,.85vh,10px);height:min(100%,720px);align-self:center}.quoteGrid{display:grid;grid-template-rows:repeat(3,1fr);gap:clamp(6px,1vh,12px);min-height:0;align-content:center}.quoteCard{border:2px solid var(--line);border-radius:13px;padding:clamp(7px,1vh,12px);background:#fff;overflow:hidden;min-height:0}.quoteTop{display:grid;grid-template-columns:auto 1fr auto;gap:clamp(5px,.8vw,10px);align-items:center;margin-bottom:clamp(4px,.7vh,8px)}.trigger{font-weight:900;text-transform:uppercase;letter-spacing:.7px;font-size:clamp(9px,.75vw,11px);display:inline-block;padding:clamp(4px,.65vh,7px) clamp(6px,.8vw,10px);border-radius:8px;background:rgba(255,179,71,.25);border:2px solid rgba(255,179,71,.7);white-space:nowrap}.qtext{font-family:"Century Gothic","CenturyGothic","AppleGothic",Arial,sans-serif;font-size:clamp(10px,.85vw,12px);font-weight:900;margin:0;display:none;line-height:1.1}.quotesOnCards .qtext{display:block}.hint,.answer{display:none;border-radius:9px;padding:clamp(5px,.85vh,9px);margin-top:clamp(4px,.65vh,7px);line-height:1.1;font-size:clamp(9.8px,.84vw,12.6px)}.hint{background:#fff9dc;border:2px solid rgba(180,160,60,.35)}.answer{background:#ecffe9;border:2px solid rgba(65,150,65,.35)}.show{display:block}.answer ul{margin:0;padding-left:15px}.answer li{margin:2px 0}
+
+  .contextBox{background:rgba(255,243,176,.6);border-color:rgba(180,160,60,.55);display:flex;flex-direction:column;height:auto;max-height:100%;align-self:center}.structureBox{background:rgba(207,233,255,.65);border-color:rgba(90,140,190,.55);display:flex;flex-direction:column;height:auto;max-height:100%;align-self:center}.bigReveal{flex:0 1 auto;border:2px dashed rgba(0,0,0,.20);border-radius:12px;background:rgba(255,255,255,.5);padding:clamp(5px,.75vh,8px);color:#444;min-height:clamp(92px,18vh,160px);overflow:hidden;display:flex;align-items:center}.hintBlock{display:block;font-size:clamp(10px,.86vw,12.5px);line-height:1.12;color:#333}.revealContent{display:none}.revealContent.show{display:block}.bigReveal:has(.revealContent.show) .hintBlock{display:none}.panel ul{font-size:clamp(10.2px,.9vw,13.5px);line-height:1.16;margin:0;padding-left:14px}.panel li{margin-bottom:clamp(3px,.6vh,6px)}
+
+
+  /* Q1 MODEL PAGE - added only for model answer section */
+  #model{grid-template-columns:minmax(0,1fr);align-items:start;justify-content:center;max-width:none;width:100vw;padding:8px 10px 18px;overflow-y:auto;overflow-x:hidden}
+  .modelPanel{width:min(1560px,98vw);height:auto;max-height:none;background:#fff;border:2px solid var(--line);border-radius:15px;padding:10px;overflow:visible;display:block;margin:0 auto 18px}
+  .modelSheet{width:100%;height:auto;overflow:visible;display:flex;flex-direction:column;gap:10px}
+  .modelTitleBox{border:2px solid #ccc;border-radius:12px;padding:10px 12px;background:#fff}
+  .modelTitleBox h2{font-size:26px;font-weight:900;margin:0 0 4px;line-height:1.05}
+  .modelTitleBox p{font-size:15px;margin:0;line-height:1.2}
+  .modelRows{display:flex;flex-direction:column;gap:10px;min-height:0;flex:0 0 auto}
+  .modelRow{display:grid;grid-template-columns:28% 72%;gap:10px;min-height:0;align-items:stretch}
+  .modelMargin,.modelAnswer{border:2px solid #ccc;border-radius:12px;overflow:visible}
+  .modelMargin{padding:9px 10px;font-size:12px;line-height:1.18}
+  .modelAnswer{padding:10px 12px;font-size:14.5px;line-height:1.25;background:#fff}
+  .modelMargin h3{margin:0 0 4px;font-size:12.5px;text-transform:uppercase;letter-spacing:.35px;line-height:1.05}
+  .modelMargin ul{margin:0;padding-left:15px}.modelMargin li{margin-bottom:3px}
+  .modelQuote{background:#c9f2c9;font-weight:700;padding:0 2px;border-radius:3px}.modelTerm{background:#ffdca8;padding:0 2px;border-radius:3px;font-weight:700}
+  .modelIntro{background:#e5f0ff}.modelP1{background:#f9c7c9}.modelP2{background:#d8f5d8}.modelP3{background:#f4e2a5}.modelConclusion{background:#e5f0ff}
+
+  @media(max-width:1000px){
+    html,body{overflow:auto}.screen{height:auto;min-height:100vh;overflow:visible}.toolbar{grid-template-columns:1fr;height:auto;gap:8px;padding:8px;white-space:normal}.title{grid-row:1}.nav,.rightTools{justify-content:center;flex-wrap:wrap;overflow:visible}.mode{height:auto;overflow:visible}#five,#quotes,#context,#model{grid-template-columns:1fr}.panel{overflow:visible}.poemText{font-size:13px}.fiveGrid,.quoteGrid{height:auto;grid-template-rows:auto}.wCard{grid-template-columns:70px 1fr auto}.modelPanel{height:auto}.modelRows{display:flex;flex-direction:column}.modelRow{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<section id="home" class="screen">
+  <div class="home">
+    <div class="hero">
+      <span class="eyebrow">Eduqas GCSE Poetry</span>
+      <h1>Interactive Anthology Revision</h1>
+      <p>Choose a poem. Use the screen as a prompt while annotating your own printed copy. Reveal support only when you need it.</p>
+    </div>
+    <div class="clusters">
+      <div class="cluster"><h2>War, conflict and power</h2><button class="poemBtn locked">Drummer Hodge</button><button class="poemBtn locked">Disabled</button><button class="poemBtn locked">Kamikaze</button><button class="poemBtn locked">Remains</button><button class="poemBtn locked">War Photographer</button></div>
+      <div class="cluster"><h2>Nature, place and memory</h2><button class="poemBtn locked">Blackberry-Picking</button><button class="poemBtn locked">I Shall Return</button><button class="poemBtn locked">I Wandered Lonely as a Cloud</button><button class="poemBtn locked">The Schoolboy</button></div>
+      <div class="cluster"><h2>Love, identity and relationships</h2><button class="poemBtn locked">Catrin</button><button class="poemBtn locked">Cousin Kate</button><button class="poemBtn available" onclick="openMode('five')">Decomposition</button><button class="poemBtn locked">Dusting the Phone</button><button class="poemBtn locked">Origin Story</button><button class="poemBtn locked">Sonnet 29</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="app" class="screen active">
+  <div class="toolbar">
+    <div class="nav"><button class="tbtn homeBtn" onclick="goHome()">← Homepage</button><button class="tbtn" onclick="resetCurrentMode()">RESET</button></div>
+    <div class="title">Decomposition</div>
+    <div class="nav rightTools">
+      <button id="tab-five" class="tbtn" onclick="openMode('five')">5Ws</button>
+      <button id="tab-quotes" class="tbtn" onclick="openMode('quotes')">3 key quotes</button>
+      <button id="tab-context" class="tbtn" onclick="openMode('context')">Context & structure</button>
+      <button id="tab-model" class="tbtn" onclick="openMode('model')">Q1 Model</button>
+    </div>
+  </div>
+
+  <main id="five" class="mode">
+    <section class="panel">
+      <h2 class="taskTitle">5Ws</h2>
+      <p class="instruction">Write answers on your printed copy first. Reveal each prompt only to check or improve your notes.</p>
+      <div class="fiveGrid">
+        <div class="wCard"><div class="wTop"><h3>Who?</h3><button class="miniBtn" onclick="toggle('w1')">Reveal</button></div><p>Who is the speaker observing, and what is his social position?</p><div id="w1" class="wReveal">The speaker observes an old beggar sleeping on a pavement in Bombay: vulnerable, poor and ignored by society.</div></div>
+        <div class="wCard"><div class="wTop"><h3>What?</h3><button class="miniBtn" onclick="toggle('w2')">Reveal</button></div><p>What has the speaker done, and why does he later feel guilty?</p><div id="w2" class="wReveal">He has taken a photograph and treated the man’s suffering as a “composition”, then regrets exploiting hunger and solitude as art.</div></div>
+        <div class="wCard"><div class="wTop"><h3>Where?</h3><button class="miniBtn" onclick="toggle('w3')">Reveal</button></div><p>Where is the poem set, and why does this setting matter?</p><div id="w3" class="wReveal">It is set in Bombay, now Mumbai, where public poverty and inequality make the beggar’s suffering seem disturbingly “common”.</div></div>
+        <div class="wCard"><div class="wTop"><h3>When?</h3><button class="miniBtn" onclick="toggle('w4')">Reveal</button></div><p>When was the poem written, and what wider historical background matters?</p><div id="w4" class="wReveal">Written in 1967, it reflects post-colonial India and Ghose’s awareness of migration, poverty, homelessness and social division.</div></div>
+        <div class="wCard"><div class="wTop"><h3>Why?</h3><button class="miniBtn" onclick="toggle('w5')">Reveal</button></div><p>Why might Ghose want readers to feel uncomfortable?</p><div id="w5" class="wReveal">Ghose criticises indifference and asks whether it is morally wrong to turn another person’s pain into art.</div></div>
+      </div>
+    </section>
+    <section class="panel poemPanel"><div class="poemCard"><div class="poemTitle">DECOMPOSITION — Zulfikar Ghose</div><div class="poemText">I have a picture I took in Bombay
+of <span class="hl q1">a beggar asleep on the pavement</span>:
+grey-haired, wearing shorts and a dirty shirt,
+his shadow thrown aside like a blanket.
+His arms and legs could be cracks in the stone,
+routes for the ants' journeys, the flies' descents,
+Brain-washed by the sun into exhaustion,
+<span class="hl q2">he lies veined into stone, a fossil man</span>.
+Behind him there is a crowd passingly
+bemused by a pavement trickster and <span class="hl q3">quite
+indifferent to this very common sight</span>
+of an old man asleep on the pavement.
+I thought it then a good composition
+and glibly called it "The Man in the Street,"
+remarking how typical it was of
+India that the man in the street lived there.
+His head in the posture of one weeping
+into a pillow chides me now for my
+presumption at attempting to compose
+art of his hunger and solitude.</div></div></section>
+  </main>
+
+  <main id="quotes" class="mode">
+    <section class="panel poemPanel" id="quotePoem"><div class="poemCard"><div class="poemTitle">DECOMPOSITION — Zulfikar Ghose</div><div class="poemText">I have a picture I took in Bombay
+of <span class="hl q1">a beggar asleep on the pavement</span>:
+grey-haired, wearing shorts and a dirty shirt,
+his shadow thrown aside like a blanket.
+His arms and legs could be cracks in the stone,
+routes for the ants' journeys, the flies' descents,
+Brain-washed by the sun into exhaustion,
+<span class="hl q2">he lies veined into stone, a fossil man</span>.
+Behind him there is a crowd passingly
+bemused by a pavement trickster and <span class="hl q3">quite
+indifferent to this very common sight</span>
+of an old man asleep on the pavement.
+I thought it then a good composition
+and glibly called it "The Man in the Street,"
+remarking how typical it was of
+India that the man in the street lived there.
+His head in the posture of one weeping
+into a pillow chides me now for my
+presumption at attempting to compose
+art of his hunger and solitude.</div></div></section>
+    <section class="panel quotePanel" id="quoteCardsPanel">
+      <div><h2 class="taskTitle">Three key quotes</h2><p class="instruction">Find the quotes on paper first. Then reveal highlights, hints, and annotations.</p></div>
+      <button class="tbtn active" onclick="toggleQuotes()">Reveal / hide key quotes</button>
+      <div class="quoteGrid">
+        <div class="quoteCard"><div class="quoteTop"><span class="trigger">QUOTE 1</span><p class="qtext">“a beggar asleep on the pavement”</p><button class="miniBtn" onclick="focusQuote('q1')">Find</button></div><button class="miniBtn" onclick="toggle('hint1')">Hint</button> <button class="miniBtn" onclick="toggle('ans1')">Annotation</button><div id="hint1" class="hint">Think about the label “beggar” and the uncomfortable place where he sleeps.</div><div id="ans1" class="answer"><ul><li><b>“Beggar”</b> reduces him to poverty rather than identity.</li><li><b>“Asleep”</b> suggests vulnerability and defencelessness.</li><li><b>“Pavement”</b> makes his suffering public, harsh and exposed.</li></ul></div></div>
+        <div class="quoteCard"><div class="quoteTop"><span class="trigger">QUOTE 2</span><p class="qtext">“he lies veined into stone, a fossil man”</p><button class="miniBtn" onclick="focusQuote('q2')">Find</button></div><button class="miniBtn" onclick="toggle('hint2')">Hint</button> <button class="miniBtn" onclick="toggle('ans2')">Annotation</button><div id="hint2" class="hint">Look closely at the metaphor and how it turns the man into part of the street.</div><div id="ans2" class="answer"><ul><li><b>“Veined”</b> merges the man’s body with the pavement.</li><li><b>“Stone”</b> suggests hardness, lifelessness and neglect.</li><li><b>“Fossil man”</b> dehumanises him, making him seem like a remnant rather than a living person.</li></ul></div></div>
+        <div class="quoteCard"><div class="quoteTop"><span class="trigger">QUOTE 3</span><p class="qtext">“quite / indifferent to this very common sight”</p><button class="miniBtn" onclick="focusQuote('q3')">Find</button></div><button class="miniBtn" onclick="toggle('hint3')">Hint</button> <button class="miniBtn" onclick="toggle('ans3')">Annotation</button><div id="hint3" class="hint">Focus on the crowd’s reaction and what “common” suggests about repeated suffering.</div><div id="ans3" class="answer"><ul><li><b>“Indifferent”</b> suggests emotional coldness and a lack of compassion.</li><li><b>“Very common”</b> implies poverty has become normalised.</li><li>The crowd’s apathy makes society seem morally careless.</li></ul></div></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="context" class="mode">
+    <section class="panel poemPanel"><div class="poemCard"><div class="poemTitle">DECOMPOSITION — Zulfikar Ghose</div><div class="poemText">I have a picture I took in Bombay
+of <span class="hl q1">a beggar asleep on the pavement</span>:
+grey-haired, wearing shorts and a dirty shirt,
+his shadow thrown aside like a blanket.
+His arms and legs could be cracks in the stone,
+routes for the ants' journeys, the flies' descents,
+Brain-washed by the sun into exhaustion,
+<span class="hl q2">he lies veined into stone, a fossil man</span>.
+Behind him there is a crowd passingly
+bemused by a pavement trickster and <span class="hl q3">quite
+indifferent to this very common sight</span>
+of an old man asleep on the pavement.
+I thought it then a good composition
+and glibly called it "The Man in the Street,"
+remarking how typical it was of
+India that the man in the street lived there.
+His head in the posture of one weeping
+into a pillow chides me now for my
+presumption at attempting to compose
+art of his hunger and solitude.</div></div></section>
+    <section class="panel contextBox"><h2 class="taskTitle">Context</h2><p class="instruction">Make notes first, then reveal.</p><button class="tbtn" onclick="toggle('contextReveal')">Reveal context</button><div class="bigReveal"><div class="hintBlock">Hint: think about Bombay, poverty, Ghose’s migration, and the ethics of turning suffering into art.</div><div id="contextReveal" class="revealContent"><ul><li>Zulfikar Ghose was born in Punjab in <b>1935</b> and later lived in Bombay before moving to England after Partition.</li><li>The poem is set in <b>Bombay</b>, now Mumbai, a crowded city associated here with poverty and public inequality.</li><li>Ghose’s work often explores <b>poverty, helplessness, death, decay and selfishness</b>.</li><li>The poem questions whether it is ethical to use another person’s suffering as artistic material.</li></ul></div></div></section>
+    <section class="panel structureBox"><h2 class="taskTitle">Structure</h2><p class="instruction">Add structure notes, then reveal.</p><button class="tbtn" onclick="toggle('structureReveal')">Reveal structure</button><div class="bigReveal"><div class="hintBlock">Hint: look at the free verse, the first-person voice, and the shift from observation to guilt.</div><div id="structureReveal" class="revealContent"><ul><li><b>Free verse</b> gives the poem a serious, reflective tone rather than a neat, controlled pattern.</li><li>The <b>first-person voice</b> makes the speaker’s guilt and self-criticism feel personal.</li><li>The poem moves from describing the photograph to judging the speaker’s own actions.</li><li>The final focus on <b>“hunger and solitude”</b> leaves the reader with the beggar’s suffering, not the speaker’s art.</li></ul></div></div></section>
+  </main>
+
+  <main id="model" class="mode">
+    <section class="modelPanel">
+      <div class="modelSheet">
+        <div class="modelTitleBox">
+          <h2>Decomposition – Question 1 Model</h2>
+          <p><b>Question:</b> How does Ghose present human suffering in the poem, <em>Decomposition</em>?</p>
+        </div>
+
+        <div class="modelRows">
+          <div class="modelRow">
+            <div class="modelMargin modelIntro">
+              <h3>Introduction</h3>
+<ul>
+<li>Directly answers the question by focusing on <b>suffering and dehumanisation</b>.</li>
+<li>Introduces the poem’s criticism of <b>social indifference</b> and the speaker’s guilt.</li>
+<li>Establishes Ghose’s wider message about the ethics of turning pain into art.</li>
+</ul>
+            </div>
+            <div class="modelAnswer">
+              In <em>Decomposition</em>, Zulfikar Ghose presents human suffering as physical, degrading and disturbingly easy for society to ignore. The poem describes a beggar sleeping on a pavement in Bombay, but it also becomes a reflection on the speaker’s own failure to respond with compassion. Through harsh imagery, metaphor and a structural shift from observation to self-criticism, Ghose suggests that suffering does not only damage the victim: it also exposes the cruelty and moral carelessness of those who look on.
+            </div>
+          </div>
+<div class="modelRow">
+            <div class="modelMargin modelP1">
+              <h3>Comment – Evidence – Development</h3>
+<ul>
+<li>Comment explains how the beggar’s suffering is shown as <b>dehumanising</b>.</li>
+<li>Uses the opening image of the <b>“beggar asleep on the pavement.”</b></li>
+<li>Zooms in on the label <b>“beggar”</b> and the setting of the pavement.</li>
+<li>Explores how the simile and physical detail make him seem abandoned.</li>
+<li>Links to the poem’s setting in Bombay and wider poverty.</li>
+</ul>
+            </div>
+            <div class="modelAnswer">
+              Ghose first presents human suffering as something that strips a person of dignity and identity. This is clear in the description of <span class="modelQuote">“a beggar asleep on the pavement.”</span> The noun <span class="modelTerm">“beggar”</span> reduces the man to his poverty rather than recognising him as an individual, while the harsh image of the <span class="modelTerm">“pavement”</span> suggests discomfort, exposure and neglect. Ghose develops this further when the man’s <span class="modelQuote">“shadow”</span> is described as being thrown aside <span class="modelQuote">“like a blanket,”</span> a simile which hints at how little protection he has. In the context of Bombay, a crowded city marked by visible inequality, the man’s suffering is presented as part of an urban reality that has become normalised. Ghose wants the reader to feel uneasy about how easily such a life can be overlooked.
+            </div>
+          </div>
+<div class="modelRow">
+            <div class="modelMargin modelP2">
+              <h3>Comment – Evidence – Development</h3>
+<ul>
+<li>Comment identifies how suffering makes the man seem almost <b>non-human</b>.</li>
+<li>Uses the metaphor of the <b>“fossil man.”</b></li>
+<li>Zooms in on <b>“stone”</b> and <b>“fossil.”</b></li>
+<li>Explores how the body is merged with the street.</li>
+<li>Links to Ghose’s interest in decay, helplessness and marginalisation.</li>
+</ul>
+            </div>
+            <div class="modelAnswer">
+              Ghose also presents suffering as so extreme that it turns the beggar into something lifeless and object-like. This is shown in the metaphor <span class="modelQuote">“he lies veined into stone, a fossil man.”</span> The image of being <span class="modelTerm">“veined into stone”</span> suggests that his body has become part of the pavement itself, making him seem trapped and almost erased. The phrase <span class="modelTerm">“fossil man”</span> is especially powerful because a fossil is a preserved remnant from the past, not a living person with a future. This dehumanises the beggar and shows how long-term poverty can make someone seem invisible to the world around them. Ghose’s focus on decay reflects his wider concern with helplessness and social neglect, and the reader is forced to confront the shocking way in which suffering can make a human being appear less than human.
+            </div>
+          </div>
+<div class="modelRow">
+            <div class="modelMargin modelP3">
+              <h3>Comment – Evidence – Development</h3>
+<ul>
+<li>Comment explains that the poem also criticises the <b>response</b> to suffering.</li>
+<li>Uses the phrase <b>“indifferent to this very common sight.”</b></li>
+<li>Zooms in on <b>“indifferent”</b> and <b>“common.”</b></li>
+<li>Explores the speaker’s guilty reflection at the end of the poem.</li>
+<li>Links structure to the shift from description to moral self-judgement.</li>
+</ul>
+            </div>
+            <div class="modelAnswer">
+              Most importantly, Ghose presents human suffering as something society has become numb to. The crowd are described as <span class="modelQuote">“indifferent to this very common sight,”</span> and the adjective <span class="modelTerm">“indifferent”</span> suggests emotional coldness and a complete lack of compassion. The phrase <span class="modelTerm">“very common”</span> is equally disturbing because it implies that repeated exposure to poverty has made people stop noticing it. However, the poem does not only criticise the crowd: it also condemns the speaker, who admits he <span class="modelQuote">“glibly”</span> turned the image into art before later regretting his <span class="modelQuote">“presumption.”</span> Structurally, the ending shifts from detached description to personal guilt, showing that the speaker now understands the beggar’s suffering should never have been treated as a mere <span class="modelTerm">“composition.”</span> Ghose therefore suggests that the real horror lies not only in poverty itself, but in the selfishness of those who observe it without acting.
+            </div>
+          </div>
+<div class="modelRow">
+            <div class="modelMargin modelConclusion">
+              <h3>Conclusion</h3>
+<ul>
+<li>Summarises Ghose’s presentation of suffering.</li>
+<li>Returns to the contrast between <b>real pain</b> and <b>public indifference</b>.</li>
+<li>Highlights the poem’s warning about dehumanisation and moral failure.</li>
+</ul>
+            </div>
+            <div class="modelAnswer">
+              In conclusion, Ghose presents human suffering in <em>Decomposition</em> as brutal, dehumanising and morally challenging. The beggar’s condition shows the physical effects of poverty, while the reactions of the crowd and the speaker reveal how easily suffering can be ignored or exploited. Through vivid imagery, metaphor and reflective structure, the poem warns readers against becoming indifferent to the pain of others.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+<script>
+function goHome(){document.getElementById('app').classList.remove('active');document.getElementById('home').classList.add('active')}
+function openMode(mode){
+  document.getElementById('home').classList.remove('active');
+  document.getElementById('app').classList.add('active');
+  document.querySelectorAll('.mode').forEach(m=>m.classList.remove('activeMode'));
+  document.getElementById(mode).classList.add('activeMode');
+  document.querySelectorAll('.rightTools .tbtn').forEach(b=>b.classList.remove('active'));
+  const tab=document.getElementById('tab-'+mode); if(tab)tab.classList.add('active');
+  clearFocus();
+}
+function toggle(id){document.getElementById(id).classList.toggle('show')}
+function toggleQuotes(){document.getElementById('quotePoem').classList.toggle('quotesOn');document.getElementById('quoteCardsPanel').classList.toggle('quotesOnCards')}
+function clearFocus(){document.querySelectorAll('.focusQuote').forEach(e=>e.classList.remove('focusQuote'))}
+function focusQuote(cls){clearFocus();document.querySelectorAll('#quotePoem .'+cls).forEach(e=>e.classList.add('focusQuote'))}
+
+function resetCurrentMode(){
+  const active=document.querySelector('.mode.activeMode');
+  if(!active) return;
+  active.querySelectorAll('.show').forEach(el=>el.classList.remove('show'));
+  active.querySelectorAll('.quotesOn, .quotesOnCards').forEach(el=>el.classList.remove('quotesOn','quotesOnCards'));
+  clearFocus();
+  fitPoems();
+}
+
+function fitPoems(){
+  document.querySelectorAll('.poemCard').forEach(card=>{
+    const title=card.querySelector('.poemTitle');
+    const text=card.querySelector('.poemText');
+    if(!title||!text) return;
+    // Reset to maximum size and natural padding before fitting down.
+    let size=17;
+    text.style.fontSize=size+'px';
+    title.style.fontSize='18px';
+    text.style.lineHeight='1.12';
+    card.style.padding='5px 8px';
+
+    // Tighten padding first, then reduce font only as needed.
+    if(card.scrollHeight>card.clientHeight || card.scrollWidth>card.clientWidth){
+      card.style.padding='3px 5px';
+    }
+    while(size>10.5 && (card.scrollHeight>card.clientHeight || card.scrollWidth>card.clientWidth)){
+      size-=0.5;
+      text.style.fontSize=size+'px';
+      title.style.fontSize=Math.max(12, size+1)+'px';
+    }
+  });
+}
+window.addEventListener('load', fitPoems);
+window.addEventListener('resize', fitPoems);
+
+window.addEventListener('load', function(){openMode('five');});
+</script>
+</body>
+</html>
